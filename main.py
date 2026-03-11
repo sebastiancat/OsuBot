@@ -1,7 +1,7 @@
 # This is a sample Python script.
 
 import levelDataExtractor
-from levelDataExtractor import extractLineData
+from levelDataExtractor import extractLineData, extractMapData
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -10,9 +10,10 @@ from levelDataExtractor import extractLineData
 # A function dedicated to any testing.
 def testing():
     file = open("Test/Toby Fox - BIG SHOT (Sylas) [ADVANCED].osu", 'r')
-    print(levelDataExtractor.getStartOfHitObjects(file))
-
-    print(extractLineData("100,100,12600,6,1,B|200:200|250:200|250:200|300:150,2,310.123,2|1|2,0:0|0:0|0:2,0:0:0:0:"))
+    print(len("asdasdaas"))
+    print(extractLineData("96,122,13739,6,0,L|187:107,1,75,6|10,1:2|0:0,0:0:0:0:"))
+    print()
+    print(extractMapData(file))
 
 
 # Press the green button in the gutter to run the script.
