@@ -1,7 +1,7 @@
 # This is a sample Python script.
 
 import levelDataExtractor
-from levelDataExtractor import getStartOfHitObjects
+from levelDataExtractor import extractLineData
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -10,16 +10,13 @@ from levelDataExtractor import getStartOfHitObjects
 # A function dedicated to any testing.
 def testing():
     file = open("Test/Toby Fox - BIG SHOT (Sylas) [ADVANCED].osu", 'r')
-    print(getStartOfHitObjects(file))
+    print(levelDataExtractor.getStartOfHitObjects(file))
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+    print(extractLineData("100,100,12600,6,1,B|200:200|250:200|250:200|300:150,2,310.123,2|1|2,0:0|0:0|0:2,0:0:0:0:"))
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
     testing()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
