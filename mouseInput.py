@@ -18,28 +18,36 @@ def convert_to_osu_pixels (x,y):
     playfieldSize = (round(monitor.height * 0.8 * (4 / 3)), round(monitor.height * 0.8))
     osuScale = (playfieldSize[0] / 512, playfieldSize[1] / 384)
     monitorCenter = (monitor.width / 2, monitor.height / 2)
-    playfieldOrgin = (monitorCenter[0] - playfieldSize[0] / 2, monitorCenter[1] - playfieldSize[1] / 2)
-    return (playfieldOrgin[0] + x * osuScale[0]), (playfieldOrgin[1] + y * osuScale[1])
+    playfieldOrigin = (monitorCenter[0] - playfieldSize[0] / 2, monitorCenter[1] - playfieldSize[1] / 2)
+    return int(playfieldOrigin[0] + x * osuScale[0]), int(playfieldOrigin[1] + y * osuScale[1])
 
-def click_drag_linear (startX,startY, endX, endY, startTimeSeconds, timeToCompletionSeconds):
+def click_drag_linear (startX,startY, endX, endY, travelRepetitions, startTimeSeconds, timeToCompletionSeconds):
     start = convert_to_osu_pixels(startX,startY)
     end = convert_to_osu_pixels(endX,endY)
     pywinauto.mouse.press('left', start)
     while time.time() - startTimeSeconds  < timeToCompletionSeconds:
         timeElapsed = time.time() - startTimeSeconds
-        pywinauto.mouse.move((timeElapsed * start[0] + (1-timeElapsed) * end[0], timeElapsed * start[1] + (1-timeElapsed) * end[1]))
+        percentComplete = timeElapsed/timeToCompletionSeconds
+        pywinauto.mouse.move((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
 
     pywinauto.mouse.release('left')
     return 0
 
-def click_drag_circle (x,y, revolutions, timeToCompletionSeconds):
+def click_drag_circle (x,y, radius, revolutions, timeToCompletionSeconds):
+
     return 1
 
-def click_drag_curve (controlPoints, speed):
+def click_drag_curve (controlPoints, startTime, timeToCompleteSeconds):
     curve = make_bezier(controlPoints)
-    for thing in range(0,len(controlPoints)):
-        print(curve[thing])
-    return 1
+    pywinauto.mouse.press('left', controlPoints[0])
+    while time.time() - startTime < timeToCompleteSeconds:
+        timeElapsed = time.time() - startTime
+        percentComplete = timeElapsed/timeToCompleteSeconds
+        targetPosition = curve(percentComplete)
+        pywinauto.mouse.move((int(targetPosition[0]), int(targetPosition[1])))
+
+    pywinauto.mouse.release('left')
+    return 0
 
 # Source - https://stackoverflow.com/a/2292690
 # Posted by unutbu, modified by community. See post 'Timeline' for change history
