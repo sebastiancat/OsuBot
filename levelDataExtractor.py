@@ -5,12 +5,18 @@ def extractMapData(file):
     # Getting the start of the hitobjects
     lines = file.readlines()
     dataStart = getStartOfHitObjects(lines)
+    timing = getStartOfTimeObjects(lines)
 
 
     hitObjects = collections.deque()
+    timeObjects = collections.deque()
 
     dataEnd = len(lines)
     for linePos in range(dataStart+1, dataEnd):
+        hitObject = extractLineData(lines[linePos])
+        hitObjects.appendleft(hitObject)
+
+    while True:
         hitObject = extractLineData(lines[linePos])
         hitObjects.appendleft(hitObject)
     return hitObjects
@@ -27,6 +33,18 @@ def getStartOfHitObjects(lines):
                 return i
         i += 1
     raise ValueError("No HitObjects declaration found!")
+
+def getStartOfTimeObjects(lines):
+    # print(lines)
+    # Iterating over the lines
+    i = 0
+    for line in lines:
+        if line[0] == '[':
+            # print(line)
+            if line.__contains__("[TimingPoints]"):
+                return i
+        i += 1
+    raise ValueError("No TimingPoints declaration found!")
 
 
 # Function to export the important data from a single line to a tuple.
@@ -57,6 +75,32 @@ def extractLineData(line):
         return 3, x, y, time, endTime
     raise ValueError("Could not determine object type!")
 
+def extractTimeData(line):
+    i = 0
+    sep = findAllOccurrences(line, ',')
+
+    x = int(line[:sep[0]])
+    y = int(line[sep[0]+1:sep[1]])
+    time = int(line[sep[1]+1:sep[2]])
+    bitType = int(line[sep[2]+1:sep[3]])
+
+    # print(bitType)
+
+    # Testing the bitmap
+
+
+    if bitType & (2**0):
+        return 1, x, y, time
+    if bitType & 2**1:
+        print("Slider")
+        curveData = line[sep[4]+1:sep[5]]
+        slides = line[sep[5]+1:sep[6]]
+        return 2, x, y, time, curveData, slides
+    if bitType & 2**3:
+        print("Spinner")
+        endTime = line[sep[4]+1:sep[5]]
+        return 3, x, y, time, endTime
+    raise ValueError("Could not determine object type!")
 
 
 
