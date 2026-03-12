@@ -13,7 +13,7 @@ def extractMapData(file):
     for linePos in range(dataStart+1, dataEnd):
         hitObject = extractLineData(lines[linePos])
         hitObjects.appendleft(hitObject)
-    print(hitObjects)
+    return hitObjects
 
 # Function to get the line starting with [HitObjects]
 def getStartOfHitObjects(lines):
@@ -37,19 +37,24 @@ def extractLineData(line):
     x = int(line[:sep[0]])
     y = int(line[sep[0]+1:sep[1]])
     time = int(line[sep[1]+1:sep[2]])
-    type = int(line[sep[2]+1:sep[3]])
+    bitType = int(line[sep[2]+1:sep[3]])
 
-    # print(type)
+    # print(bitType)
 
     # Testing the bitmap
-    if type & (2**0):
-        return x, y, time
-    if type & 2**1:
+
+
+    if bitType & (2**0):
+        return 1, x, y, time
+    if bitType & 2**1:
         print("Slider")
-        return "TEST"
-    if type & 2**3:
+        curveData = line[sep[4]+1:sep[5]]
+        slides = line[sep[5]+1:sep[6]]
+        return 2, x, y, time, curveData, slides
+    if bitType & 2**3:
         print("Spinner")
-        return "TEST"
+        endTime = line[sep[4]+1:sep[5]]
+        return 3, x, y, time, endTime
     raise ValueError("Could not determine object type!")
 
 
