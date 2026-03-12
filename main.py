@@ -1,5 +1,5 @@
 import time
-
+import keyboard
 import pywinauto
 # from pywinauto import Application
 import mouseInput
@@ -23,11 +23,13 @@ def testing():
     #app = Application("win32").start(osuPath, 15, 5, True)
     # time.sleep(10)
     # click_position_osu(512/2,384/2)
-    mouseInput.click_drag_linear(0,0,500,500,time.time(), 5)
+    # mouseInput.click_drag_linear(0,0,500,500,time.time(), 5)
 
 def startup():
     file = open("Test/Toby Fox - BIG SHOT (Sylas) [ADVANCED].osu", 'r')
     data = extractMapData(file)
+
+    keyboard.wait('z')
 
 
     startTime = time.time()
