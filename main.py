@@ -1,9 +1,9 @@
 import time
 import keyboard
 import pywinauto
-# from pywinauto import Application
+from pywinauto import Application
 import mouseInput
-from mouseInput import click_position_osu, make_bezier, click_drag_linear
+from mouseInput import click_position_osu, make_bezier, click_drag_linear, click_drag_curve
 
 import levelDataExtractor
 from levelDataExtractor import extractLineData, extractMapData
@@ -97,11 +97,18 @@ if __name__ == '__main__':
             print(hitObject[4])
 
             # Retrieve the curve's control points
-            curvePairs = hitObject[4][2:].split('|')
-            curvePairs.insert(0, str(x) + ":" + str(y))
-            curveCoordinates = []
-            for pair in range(len(curvePairs)):
-                curveCoordinates.append(curvePairs[pair].split(':'))
+            curvePairs = hitObject[4][2:]
+            print(curvePairs)
+
+
+            curveCoordinates = [(x, y)]
+            seps = levelDataExtractor.findAllOccurrences(curveCoordinates[1:], "|")
+
+            for i in range(1, len(seps)):
+                rawControlPoint = curvePairs[seps[i-1]+1:seps[i]]
+                print("Raw Control Point: " + rawControlPoint)
+                controlX, controlY = (rawControlPoint.split(":"))
+                curvePairs.append((int(controlX), int(controlY)))
 
             # Variable go brr
             sliderMultiplier = 1
@@ -114,11 +121,17 @@ if __name__ == '__main__':
             if hitObject[4][0] == 'L':
                 print("Linear curve")
                 for pair in range(0,len(curvePairs) - 1):
+                    # Shouldn't the startTime use the actual start time variable?
                     click_drag_linear(float(curveCoordinates[pair][0]), float(curveCoordinates[pair][1]), float(curveCoordinates[pair + 1][0]), float(curveCoordinates[pair + 1][1]), 0, time.time(), sliderTime)
             elif hitObject[4][0] == 'P':
                 print("Circular curve")
             elif hitObject[4][0] == 'B':
                 curves = calculateBezierCurves(curveCoordinates)
+                print("From Curve: " + str(curves))
+                for curve in curves:
+                    print("Extracted: " + str(curve))
+                    click_drag_curve(curve, ..., ...)
+
 
                 print("Bezier curve")
 
