@@ -62,17 +62,18 @@ def click_drag_circle (p1, p2, p3, travelRepititions, timeToCompleteSeconds):
 
     return 1
 
+#Control points as an array
 def click_drag_curve (controlPoints, startTime, timeToCompleteSeconds):
     curve = make_bezier(controlPoints)
     pyautogui.moveTo(controlPoints[0])
-    pyautogui.mouseDown('left')
+    pyautogui.mouseDown()
     while time.time() - startTime < timeToCompleteSeconds:
         timeElapsed = time.time() - startTime
         percentComplete = timeElapsed/timeToCompleteSeconds
         targetPosition = curve(percentComplete)
         pyautogui.move((int(targetPosition[0]), int(targetPosition[1])))
 
-    pyautogui.mouseUp('left')
+    pyautogui.mouseUp()
     return 0
 
 # Source - https://stackoverflow.com/a/2292690

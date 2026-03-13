@@ -34,15 +34,17 @@ def calculateBezierCurves(curveCoordinatesLocal):
     firstPoint = True
     for i in range(len(curveCoordinatesLocal)):
         if firstPoint:
-            curvesLocal.append([curveCoordinatesLocal[i]])
+            curvesLocal[0][0] = curveCoordinatesLocal[i]
             firstPoint = False
             continue
 
         if curveCoordinatesLocal[i] == curveCoordinatesLocal[i - 1]:
             curvesLocal.append([curveCoordinatesLocal[i]])
+            curveIndex += 1
         else:
             curvesLocal[curveIndex].append(curveCoordinatesLocal[i])
 
+    #TODO: Convert returns from strings to floats
     return curvesLocal
 
 
@@ -97,32 +99,43 @@ if __name__ == '__main__':
             print(hitObject[4])
 
             # Retrieve the curve's control points
-            curvePairs = hitObject[4][2:]
-            print(curvePairs)
+            curvePairs = hitObject[4][2:].split('|')
+            curvePairs.insert(0, str(x) + ":" + str(y))
+            curveCoordinates = []
+            for i in range(len(curvePairs)):
+                print("Raw control point " + str(curvePairs[i]))
+                controlX, controlY = curvePairs[i].split(':')
+                curveCoordinates.append((controlX,controlY))
 
 
-            curveCoordinates = [(x, y)]
-            seps = levelDataExtractor.findAllOccurrences(curveCoordinates[1:], "|")
+            # curvePairs = hitObject[4][2:]
+            # print(curvePairs)
+            #
+            #
+            # curveCoordinates = [(x, y)]
+            # seps = levelDataExtractor.findAllOccurrences(curvePairs[1:], "|")
+            #
+            # This loop didn't seem to be running
+            # for i in range(1, len(seps)):
+            #     rawControlPoint = curvePairs[seps[i-1]+1:seps[i]]
+            #     print("Raw Control Point: " + rawControlPoint)
+            #     controlX, controlY = (rawControlPoint.split(":"))
+            #     curveCoordinates.append((int(controlX), int(controlY)))
 
-            for i in range(1, len(seps)):
-                rawControlPoint = curvePairs[seps[i-1]+1:seps[i]]
-                print("Raw Control Point: " + rawControlPoint)
-                controlX, controlY = (rawControlPoint.split(":"))
-                curvePairs.append((int(controlX), int(controlY)))
-
-            # Variable go brr
+            # TODO: Actual values
             sliderMultiplier = 1
             timingSliderMultiplier = 1
             beatLength = 0.1
             sliderLength = float(hitObject[6])
-            # Is time in milliseconds
-            sliderTime =  sliderLength / (sliderMultiplier * 100 * timingSliderMultiplier) * beatLength
+
+            sliderTime =  sliderLength / (sliderMultiplier * 100 * timingSliderMultiplier) * beatLength / 1000
 
             if hitObject[4][0] == 'L':
                 print("Linear curve")
-                for pair in range(0,len(curvePairs) - 1):
+                for x in range(0, len(curvePairs) - 1):
                     # Shouldn't the startTime use the actual start time variable?
-                    click_drag_linear(float(curveCoordinates[pair][0]), float(curveCoordinates[pair][1]), float(curveCoordinates[pair + 1][0]), float(curveCoordinates[pair + 1][1]), 0, time.time(), sliderTime)
+                    # You mean the one in the hitObject? -Remy
+                    click_drag_linear(float(curveCoordinates[x][0]), float(curveCoordinates[x][1]), float(curveCoordinates[x + 1][0]), float(curveCoordinates[x + 1][1]), 0, time.time(), sliderTime)
             elif hitObject[4][0] == 'P':
                 print("Circular curve")
             elif hitObject[4][0] == 'B':
@@ -130,7 +143,8 @@ if __name__ == '__main__':
                 print("From Curve: " + str(curves))
                 for curve in curves:
                     print("Extracted: " + str(curve))
-                    click_drag_curve(curve, ..., ...)
+                    #TODO: Actual values
+                    #click_drag_curve(curve, ..., ...)
 
 
                 print("Bezier curve")
