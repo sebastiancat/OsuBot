@@ -26,7 +26,17 @@ def convert_to_osu_pixels (x,y):
 
     return int(playfieldOrigin[0] + x * osuScale[0]), int(playfieldOrigin[1] + y * osuScale[1])
 
-def click_drag_linear (startX,startY, endX, endY, travelRepetitions, startTimeSeconds, timeToCompletionSeconds):
+def click_drag_linear (controlPoints, travelRepetitions, startTimeSeconds, timeToCompletion):
+    startX, startY = controlPoints[0]
+    endX, endY = controlPoints[1]
+
+    finalDistance = 0
+    for ctlPt in controlPoints[1:]:
+            finalDistance += math.hypot(controlPoints[0][0] - controlPoints[1][0], controlPoints[0][1] - controlPoints[1][1])
+
+    timeToCompletionSeconds = finalDistance / math.hypot(endX - startX, endY - startY) * timeToCompletion
+
+
     start = convert_to_osu_pixels(startX,startY)
     end = convert_to_osu_pixels(endX,endY)
     pyautogui.keyDown('x')
@@ -36,6 +46,10 @@ def click_drag_linear (startX,startY, endX, endY, travelRepetitions, startTimeSe
         pyautogui.moveTo((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
 
     pyautogui.keyUp('x')
+
+    if controlPoints > 2:
+        click_drag_linear(controlPoints[1:], travelRepetitions, timeElapsed, timeToCompletion-timeToCompletionSeconds)
+
     return 0
 
 def click_drag_circle (p1, p2, p3, travelRepititions, timeToCompleteSeconds):
