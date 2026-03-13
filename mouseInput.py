@@ -1,52 +1,78 @@
-import pywinauto
-import pywinauto.mouse
+import pyautogui
 import time
 from screeninfo import get_monitors
+import math
 
+osuScale = (1,1)
+playfieldOrigin = (1,1)
 #Click a position in screen coordinates
-def click_position(x,y):
-    pywinauto.mouse.click('left', (x,y))
+def mouseSetup():
+    monitor = get_monitors()[0]
+    playfieldSize = (round(monitor.height * 0.8 * (4 / 3)), round(monitor.height * 0.8))
+    global osuScale
+    osuScale= (playfieldSize[0] / 512, playfieldSize[1] / 384)
+    monitorCenter = (monitor.width / 2, monitor.height / 2)
+    global playfieldOrigin
+    playfieldOrigin= (monitorCenter[0] - playfieldSize[0] / 2, monitorCenter[1] - playfieldSize[1] / 2)
 
 # Click a position in osu! coordinates
 def click_position_osu(x,y):
     #Assume osu! is running fullscreen
     osuCoordinates = convert_to_osu_pixels(x,y)
-    click_position(int(osuCoordinates[0]), int(osuCoordinates[1]))
+    pyautogui.moveTo(osuCoordinates[0], osuCoordinates[1])
+    pyautogui.click()
 
 def convert_to_osu_pixels (x,y):
-    monitor = get_monitors()[0]
-    playfieldSize = (round(monitor.height * 0.8 * (4 / 3)), round(monitor.height * 0.8))
-    osuScale = (playfieldSize[0] / 512, playfieldSize[1] / 384)
-    monitorCenter = (monitor.width / 2, monitor.height / 2)
-    playfieldOrigin = (monitorCenter[0] - playfieldSize[0] / 2, monitorCenter[1] - playfieldSize[1] / 2)
+
     return int(playfieldOrigin[0] + x * osuScale[0]), int(playfieldOrigin[1] + y * osuScale[1])
 
 def click_drag_linear (startX,startY, endX, endY, travelRepetitions, startTimeSeconds, timeToCompletionSeconds):
     start = convert_to_osu_pixels(startX,startY)
     end = convert_to_osu_pixels(endX,endY)
-    pywinauto.mouse.press('left', start)
+    pyautogui.keyDown('x')
     while time.time() - startTimeSeconds  < timeToCompletionSeconds:
         timeElapsed = time.time() - startTimeSeconds
         percentComplete = timeElapsed/timeToCompletionSeconds
-        pywinauto.mouse.move((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
+        pyautogui.moveTo((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
 
-    pywinauto.mouse.release('left')
+    pyautogui.keyUp('x')
     return 0
 
-def click_drag_circle (x,y, radius, revolutions, timeToCompletionSeconds):
+def click_drag_circle (p1, p2, p3, travelRepititions, timeToCompleteSeconds):
+    radius, center = circleRadiusAndCenter(p1, p2, p3)
+
+    distAC = p3 - p1
+    distAB = p2 - p1
+
+    if distAC[0] > 0:
+        if distAB[0] > 0:
+            direction = 1
+        else:
+            direction = -1
+    else:
+        if distAB[0] > 0:
+            direction = 1
+        else:
+            direction = -1
+
+
+    angle = 0
+    x = radius * math.cos(angle) + center[0] * direction
+    x = radius * math.sin(angle) + center[1] * direction
 
     return 1
 
 def click_drag_curve (controlPoints, startTime, timeToCompleteSeconds):
     curve = make_bezier(controlPoints)
-    pywinauto.mouse.press('left', controlPoints[0])
+    pyautogui.moveTo(controlPoints[0])
+    pyautogui.mouseDown('left')
     while time.time() - startTime < timeToCompleteSeconds:
         timeElapsed = time.time() - startTime
         percentComplete = timeElapsed/timeToCompleteSeconds
         targetPosition = curve(percentComplete)
-        pywinauto.mouse.move((int(targetPosition[0]), int(targetPosition[1])))
+        pyautogui.move((int(targetPosition[0]), int(targetPosition[1])))
 
-    pywinauto.mouse.release('left')
+    pyautogui.mouseUp('left')
     return 0
 
 # Source - https://stackoverflow.com/a/2292690
@@ -89,3 +115,21 @@ def pascal_row(n, memo={}):
         result.extend(reversed(result))
     memo[n] = result
     return result
+
+
+def circleRadiusAndCenter(b, c, d):
+    temp = c[0]**2 + c[1]**2
+    bc = (b[0]**2 + b[1]**2 - temp) / 2
+    cd = (temp - d[0]**2 - d[1]**2) / 2
+    det = (b[0] - c[0]) * (c[1] - d[1]) - (c[0] - d[0]) * (b[1] - c[1])
+
+    if abs(det) < 1.0e-10:
+        return None
+
+    # Center of circle
+    cx = (bc*(c[1] - d[1]) - cd*(b[1] - c[1])) / det
+    cy = ((b[0] - c[0]) * cd - (c[0] - d[0]) * bc) / det
+
+    radius = ((cx - b[0])**2 + (cy - b[1])**2)**.5
+
+    return radius, (cy, cy)

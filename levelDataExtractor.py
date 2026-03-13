@@ -62,7 +62,8 @@ def extractLineData(line):
     if bitType & 2**1:
         curveData = line[sep[4]+1:sep[5]]
         slides = line[sep[5]+1:sep[6]]
-        return 2, x, y, time, curveData, slides
+        length = line[sep[6]+1:sep[7]]
+        return 2, x, y, time, curveData, slides, length
     if bitType & 2**3:
         endTime = line[sep[4]+1:sep[5]]
         return 3, x, y, time, endTime
@@ -73,14 +74,9 @@ def extractTimeData(line):
     sep = findAllOccurrences(line, ',')
     print("Line: " +line)
 
-    time = int(line[:sep[0]])
+    time = int(float(line[:sep[0]]))
     beatLength = float(line[sep[0]+1:sep[1]])
     return time, beatLength
-
-
-
-
-
 
 def findAllOccurrences(string, char):
     # A variable for the position of the commas

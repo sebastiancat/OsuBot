@@ -3,38 +3,47 @@ import keyboard
 import pywinauto
 # from pywinauto import Application
 import mouseInput
-from mouseInput import click_position_osu, make_bezier
+from mouseInput import click_position_osu, make_bezier, click_drag_linear
 
 import levelDataExtractor
 from levelDataExtractor import extractLineData, extractMapData
 
 def testing():
     file = open("Test/Toby Fox - BIG SHOT (Sylas) [ADVANCED].osu", 'r')
-    print(len("asdasdaas"))
-    print(extractMapData(file))
-    print(extractLineData("96,122,13739,6,0,L|187:107,1,75,6|10,1:2|0:0,0:0:0:0:"))
-    print()
-    # print(extractMapData(file))
 
     # Launch osu!
-    osuPath = r"C:\Users\cortn\AppData\Local\osulazer\current\osu!.exe"
-    #app = Application("win32").start(osuPath, 15, 5, True)
     # time.sleep(10)
     # click_position_osu(512/2,384/2)
     bezier = make_bezier([(1,2),(2,3)])
     #mouseInput.click_drag_linear(0,0,10,10,0,time.time(), 5)
 
 def startup():
+    mouseInput.mouseSetup()
     file = open("Test/Kry.exe - Rift Walker (Ryuusei Aika) [Easy].osu", 'r')
     data, timeData, SliderMultiplier = extractMapData(file)
 
-
     keyboard.wait('z')
-
 
     startTime = time.time()
 
     return data, startTime, timeData
+
+def calculateBezierCurves(curveCoordinatesLocal):
+    curvesLocal = [[(0, 0)]]
+    curveIndex = 0
+    firstPoint = True
+    for i in range(len(curveCoordinatesLocal)):
+        if firstPoint:
+            curvesLocal.append([curveCoordinatesLocal[i]])
+            firstPoint = False
+            continue
+
+        if curveCoordinatesLocal[i] == curveCoordinatesLocal[i - 1]:
+            curvesLocal.append([curveCoordinatesLocal[i]])
+        else:
+            curvesLocal[curveIndex].append(curveCoordinatesLocal[i])
+
+    return curvesLocal
 
 
 # Press the green button in the gutter to run the script.
@@ -48,7 +57,7 @@ if __name__ == '__main__':
     print("Starting Loop")
     print("Start Time: " + str(startTime))
     print("Time: " + str(time.time()))
-
+    # Intended jank
     timeObject = timeData.pop()
 
     while True:
@@ -57,9 +66,9 @@ if __name__ == '__main__':
 
         hitObject = data.pop()
         nextHitObject = False
-        print(hitObject)
+        # print(hitObject)
         nextTimeObject = False
-        print("Next Time Object: " + str(timeObject))
+        # print("Next Time Object: " + str(timeObject))
 
         # Time calculations (should prevent drifting)
         objTime = float(hitObject[3]) / 1000
@@ -69,12 +78,47 @@ if __name__ == '__main__':
         # if timeTime > currentTime:
         #
         # Snake is eepy...
-        print("Current Time: " + str(currentTime))
-        time.sleep((objTime - currentTime))
+        # if objTime <= currentTime:
+        #     print("Object time " + str(objTime) + ", currentTime " + str(currentTime))
+        #     print("How the hell did we get here")
+        #     continue
 
+        time.sleep((objTime - currentTime))
+        #time.sleep(0.5)
+
+        print("Object time " + str(objTime) + ", currentTime " + str(currentTime))
         x = hitObject[1]
         y = hitObject[2]
 
         # Various Typing
         if hitObject[0] == 1:
             mouseInput.click_position_osu(x, y)
+        elif hitObject[0] == 2:
+            print(hitObject[4])
+
+            # Retrieve the curve's control points
+            curvePairs = hitObject[4][2:].split('|')
+            curvePairs.insert(0, str(x) + ":" + str(y))
+            curveCoordinates = []
+            for pair in range(len(curvePairs)):
+                curveCoordinates.append(curvePairs[pair].split(':'))
+
+            # Variable go brr
+            sliderMultiplier = 1
+            timingSliderMultiplier = 1
+            beatLength = 0.1
+            sliderLength = float(hitObject[6])
+            # Is time in milliseconds
+            sliderTime =  sliderLength / (sliderMultiplier * 100 * timingSliderMultiplier) * beatLength
+
+            if hitObject[4][0] == 'L':
+                print("Linear curve")
+                for pair in range(0,len(curvePairs) - 1):
+                    click_drag_linear(float(curveCoordinates[pair][0]), float(curveCoordinates[pair][1]), float(curveCoordinates[pair + 1][0]), float(curveCoordinates[pair + 1][1]), 0, time.time(), sliderTime)
+            elif hitObject[4][0] == 'P':
+                print("Circular curve")
+            elif hitObject[4][0] == 'B':
+                curves = calculateBezierCurves(curveCoordinates)
+
+                print("Bezier curve")
+
