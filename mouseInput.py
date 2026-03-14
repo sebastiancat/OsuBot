@@ -18,48 +18,49 @@ def mouseSetup():
 # Click a position in osu! coordinates
 def click_position_osu(x,y):
     #Assume osu! is running fullscreen
-    osuCoordinates = convert_to_osu_pixels(x,y)
+    osuCoordinates = convert_from_osu_pixels(x, y)
     pyautogui.moveTo(osuCoordinates[0], osuCoordinates[1])
     pyautogui.click()
 
-def convert_to_osu_pixels (x,y):
-
+# Take an input in osu! pixels and return screen pixels
+def convert_from_osu_pixels (x, y):
     return int(playfieldOrigin[0] + x * osuScale[0]), int(playfieldOrigin[1] + y * osuScale[1])
 
 def click_drag_linear (startX,startY, endX, endY, travelRepetitions, startTimeSeconds, timeToCompletionSeconds):
-    start = convert_to_osu_pixels(startX,startY)
-    end = convert_to_osu_pixels(endX,endY)
-    pyautogui.keyDown('x')
+    start = convert_from_osu_pixels(startX, startY)
+    end = convert_from_osu_pixels(endX, endY)
+    pyautogui.mouseDown(startX,startY)
+
     while time.time() - startTimeSeconds  < timeToCompletionSeconds:
         timeElapsed = time.time() - startTimeSeconds
         percentComplete = timeElapsed/timeToCompletionSeconds
         pyautogui.moveTo((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
 
-    pyautogui.keyUp('x')
+    pyautogui.mouseUp()
     return 0
 
 def click_drag_circle (p1, p2, p3, travelRepititions, timeToCompleteSeconds):
-    radius, center = circleRadiusAndCenter(p1, p2, p3)
-
-    distAC = p3 - p1
-    distAB = p2 - p1
-
-    if distAC[0] > 0:
-        if distAB[0] > 0:
-            direction = 1
-        else:
-            direction = -1
-    else:
-        if distAB[0] > 0:
-            direction = 1
-        else:
-            direction = -1
-
-
-    angle = 0
-    x = radius * math.cos(angle) + center[0] * direction
-    x = radius * math.sin(angle) + center[1] * direction
-
+    # radius, center = circleRadiusAndCenter(p1, p2, p3)
+    #
+    # distAC = p3 - p1
+    # distAB = p2 - p1
+    #
+    # if distAC[0] > 0:
+    #     if distAB[0] > 0:
+    #         direction = 1
+    #     else:
+    #         direction = -1
+    # else:
+    #     if distAB[0] > 0:
+    #         direction = 1
+    #     else:
+    #         direction = -1
+    #
+    #
+    # angle = 0
+    # x = radius * math.cos(angle) + center[0] * direction
+    # x = radius * math.sin(angle) + center[1] * direction
+    #
     return 1
 
 #Control points as an array
@@ -70,8 +71,9 @@ def click_drag_curve (controlPoints, startTime, timeToCompleteSeconds):
     while time.time() - startTime < timeToCompleteSeconds:
         timeElapsed = time.time() - startTime
         percentComplete = timeElapsed/timeToCompleteSeconds
-        targetPosition = curve(percentComplete)
-        pyautogui.move((int(targetPosition[0]), int(targetPosition[1])))
+        targetPosition = curve([percentComplete])
+        print("Target: " + str(targetPosition))
+        pyautogui.move((int(targetPosition[0][0]), int(targetPosition[0][1])))
 
     pyautogui.mouseUp()
     return 0

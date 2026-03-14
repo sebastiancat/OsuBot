@@ -1,0 +1,55 @@
+﻿osu file format v128
+
+[General]
+AudioFilename: audio.mp3
+AudioLeadIn: 0
+PreviewTime: -1
+Countdown: 0
+SampleSet: Normal
+StackLeniency: 0.7
+Mode: 0
+LetterboxInBreaks: 0
+WidescreenStoryboard: 1
+
+[Editor]
+DistanceSpacing: 1
+BeatDivisor: 16
+GridSize: 4
+TimelineZoom: 1
+
+[Metadata]
+Title: Testing
+TitleUnicode: Testing
+Artist: Testing
+ArtistUnicode: Testing
+Creator: Guest
+Version: Linear curves
+Source: afw
+Tags: afwefasf
+
+[Difficulty]
+HPDrainRate: 5
+CircleSize: 5
+OverallDifficulty: 5
+ApproachRate: 5
+SliderMultiplier: 1.4
+SliderTickRate: 1
+
+[Events]
+
+[TimingPoints]
+15,1000,4,1,0,100,1,0
+4000,1000,4,1,0,100,1,0
+
+[Colours]
+Combo1: 255,192,0,255
+Combo2: 0,202,0,255
+Combo3: 18,124,255,255
+Combo4: 242,24,57,255
+
+[HitObjects]
+107,107,15,6,0,L|406:111,1,280,0|0,1:0|1:0,1:0:0:0:
+392,177,2265,2,0,L|265:343,1,201.25,0|0,1:0|1:0,1:0:0:0:
+238,333,4125,2,0,L|97:115|361:97|325:240,1,665,0|0,1:0|1:0,1:0:0:0:
+135,86,9250,2,0,L|268:274,2,227.5,0|0|0,1:0|1:0|1:0,1:0:0:0:
+135,86,13687,2,0,L|268:274,3,227.5,0|0|0|0,1:0|1:0|1:0|1:0,1:0:0:0:

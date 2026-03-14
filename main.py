@@ -1,7 +1,6 @@
+import math
 import time
 import keyboard
-import pywinauto
-from pywinauto import Application
 import mouseInput
 from mouseInput import click_position_osu, make_bezier, click_drag_linear, click_drag_curve
 
@@ -19,7 +18,8 @@ def testing():
 
 def startup():
     mouseInput.mouseSetup()
-    file = open("Test/Kry.exe - Rift Walker (Ryuusei Aika) [Easy].osu", 'r')
+    file = open("Test/Testing - Testing (Guest) [Linear curves].osu", 'r')
+    global SliderMultiplier
     data, timeData, SliderMultiplier = extractMapData(file)
 
     keyboard.wait('z')
@@ -29,28 +29,39 @@ def startup():
     return data, startTime, timeData
 
 def calculateBezierCurves(curveCoordinatesLocal):
-    curvesLocal = [[(0, 0)]]
+    curvesLocal = [[(0.0, 0.0)]]
     curveIndex = 0
     firstPoint = True
     for i in range(len(curveCoordinatesLocal)):
         if firstPoint:
-            curvesLocal[0][0] = curveCoordinatesLocal[i]
+            curvesLocal[0][0] = (float(curveCoordinatesLocal[i][0]), float(curveCoordinatesLocal[i][1]))
             firstPoint = False
             continue
 
         if curveCoordinatesLocal[i] == curveCoordinatesLocal[i - 1]:
-            curvesLocal.append([curveCoordinatesLocal[i]])
+
+            curvesLocal.append([(float(curveCoordinatesLocal[i][0]), float(curveCoordinates[i][1]))])
             curveIndex += 1
         else:
-            curvesLocal[curveIndex].append(curveCoordinatesLocal[i])
+            print("Curves Local")
+            curvesLocal[curveIndex].append((float(curveCoordinatesLocal[i][0]), float(curveCoordinatesLocal[i][1])))
 
-    #TODO: Convert returns from strings to floats
+    print("Local curves" + str(curvesLocal))
     return curvesLocal
 
 
-# Press the green button in the gutter to run the script.
+def getCurveControlPoints():
+    curveCoordinates = []
+    curvePairs = hitObject[4][2:].split('|')
+    curvePairs.insert(0, str(x) + ":" + str(y))
+    for i in range(len(curvePairs)):
+        controlX, controlY = curvePairs[i].split(':')
+        curveCoordinates.append((int(controlX), int(controlY)))
+    return curveCoordinates
+
 if __name__ == '__main__':
     testing()
+    SliderMultiplier = 1
 
     data, startTime, timeData = startup()
 
@@ -84,8 +95,8 @@ if __name__ == '__main__':
         #     print("Object time " + str(objTime) + ", currentTime " + str(currentTime))
         #     print("How the hell did we get here")
         #     continue
-
-        time.sleep((objTime - currentTime))
+        if objTime - currentTime > 0:
+            time.sleep((objTime - currentTime))
         #time.sleep(0.5)
 
         print("Object time " + str(objTime) + ", currentTime " + str(currentTime))
@@ -99,52 +110,39 @@ if __name__ == '__main__':
             print(hitObject[4])
 
             # Retrieve the curve's control points
-            curvePairs = hitObject[4][2:].split('|')
-            curvePairs.insert(0, str(x) + ":" + str(y))
-            curveCoordinates = []
-            for i in range(len(curvePairs)):
-                print("Raw control point " + str(curvePairs[i]))
-                controlX, controlY = curvePairs[i].split(':')
-                curveCoordinates.append((controlX,controlY))
-
-
-            # curvePairs = hitObject[4][2:]
-            # print(curvePairs)
-            #
-            #
-            # curveCoordinates = [(x, y)]
-            # seps = levelDataExtractor.findAllOccurrences(curvePairs[1:], "|")
-            #
-            # This loop didn't seem to be running
-            # for i in range(1, len(seps)):
-            #     rawControlPoint = curvePairs[seps[i-1]+1:seps[i]]
-            #     print("Raw Control Point: " + rawControlPoint)
-            #     controlX, controlY = (rawControlPoint.split(":"))
-            #     curveCoordinates.append((int(controlX), int(controlY)))
+            curveCoordinates = getCurveControlPoints()
 
             # TODO: Actual values
-            sliderMultiplier = 1
             timingSliderMultiplier = 1
-            beatLength = 0.1
+
+            beatLength = timeObject[1]
             sliderLength = float(hitObject[6])
 
-            sliderTime =  sliderLength / (sliderMultiplier * 100 * timingSliderMultiplier) * beatLength / 1000
+            sliderTime =  sliderLength / (SliderMultiplier * 100 * timingSliderMultiplier) * beatLength / 1000
 
             if hitObject[4][0] == 'L':
-                print("Linear curve")
-                for x in range(0, len(curvePairs) - 1):
-                    # Shouldn't the startTime use the actual start time variable?
-                    # You mean the one in the hitObject? -Remy
+                for x in range(0, len(curveCoordinates) - 1):
                     click_drag_linear(float(curveCoordinates[x][0]), float(curveCoordinates[x][1]), float(curveCoordinates[x + 1][0]), float(curveCoordinates[x + 1][1]), 0, time.time(), sliderTime)
+
             elif hitObject[4][0] == 'P':
-                print("Circular curve")
+                click_drag_curve([(curveCoordinates[0][0], curveCoordinates[0][1]), (curveCoordinates[1][0], curveCoordinates[1][1]), (curveCoordinates[2][0], curveCoordinates[2][1])], time.time(), sliderTime)
+
             elif hitObject[4][0] == 'B':
                 curves = calculateBezierCurves(curveCoordinates)
                 print("From Curve: " + str(curves))
                 for curve in curves:
                     print("Extracted: " + str(curve))
-                    #TODO: Actual values
-                    #click_drag_curve(curve, ..., ...)
+                    startX, startY = curveCoordinates[0]
+                    endX, endY = curveCoordinates[1]
+
+                    finalDistance = 0
+                    for ctlPt in curveCoordinates[1:]:
+                        finalDistance += math.hypot(curveCoordinates[0][0] - curveCoordinates[1][0], curveCoordinates[0][1] - curveCoordinates[1][1])
+
+                    timeToCompletionSeconds = finalDistance / math.hypot(endX - startX, endY - startY) * sliderTime
+
+
+                    click_drag_curve(curve, time.time(), timeToCompletionSeconds)
 
 
                 print("Bezier curve")
