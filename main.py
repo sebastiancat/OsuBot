@@ -22,7 +22,7 @@ def startup():
     global SliderMultiplier
     data, timeData, SliderMultiplier = extractMapData(file)
     # TODO: Properly start (waiting for z needs root access on linux)
-    # keyboard.wait('z')
+    keyboard.wait('z')
 
     startTime = time.time()
 
@@ -91,10 +91,6 @@ if __name__ == '__main__':
         # if timeTime > currentTime:
         #
         # Snake is eepy...
-        # if objTime <= currentTime:
-        #     print("Object time " + str(objTime) + ", currentTime " + str(currentTime))
-        #     print("How the hell did we get here")
-        #     continue
         if objTime - currentTime > 0:
             time.sleep((objTime - currentTime))
         #time.sleep(0.5)
@@ -122,7 +118,9 @@ if __name__ == '__main__':
 
             if hitObject[4][0] == 'L':
                 for x in range(0, len(curveCoordinates) - 1):
-                    mouseInput.click_drag_linear(float(curveCoordinates[x][0]), float(curveCoordinates[x][1]), float(curveCoordinates[x + 1][0]), float(curveCoordinates[x + 1][1]), 0, time.time(), sliderTime)
+                    sliderLength = int(math.sqrt((curveCoordinates[x][0] - curveCoordinates[x+1][0])**2 + (curveCoordinates[x][1]- curveCoordinates[x+1][1])**2))
+                    sliderTime = sliderLength / (SliderMultiplier * 100 * timingSliderMultiplier) * beatLength / 1000
+                    mouseInput.click_drag_linear(curveCoordinates[x], curveCoordinates[x+1], int(float(hitObject[5])), x==len(curveCoordinates)-2, time.time(), sliderTime)
 
             elif hitObject[4][0] == 'P':
                 mouseInput.click_drag_curve([(curveCoordinates[0][0], curveCoordinates[0][1]), (curveCoordinates[1][0], curveCoordinates[1][1]), (curveCoordinates[2][0], curveCoordinates[2][1])], time.time(), sliderTime)

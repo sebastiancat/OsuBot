@@ -26,17 +26,23 @@ def click_position_osu(x,y):
 def convert_from_osu_pixels (x, y):
     return int(playfieldOrigin[0] + x * osuScale[0]), int(playfieldOrigin[1] + y * osuScale[1])
 
-def click_drag_linear (startX,startY, endX, endY, travelRepetitions, startTimeSeconds, timeToCompletionSeconds):
-    start = convert_from_osu_pixels(startX, startY)
-    end = convert_from_osu_pixels(endX, endY)
-    pyautogui.mouseDown(startX,startY)
+def click_drag_linear (startOsuPixels, endOsuPixels, travelRepetitions, releaseMouseOnEnd, startTime, timeToCompletionSeconds):
+    start = convert_from_osu_pixels(startOsuPixels[0], startOsuPixels[1])
+    end = convert_from_osu_pixels(endOsuPixels[0], endOsuPixels[1])
+    pyautogui.moveTo(start[0],start[1])
+    pyautogui.mouseDown()
 
-    while time.time() - startTimeSeconds  < timeToCompletionSeconds:
-        timeElapsed = time.time() - startTimeSeconds
-        percentComplete = timeElapsed/timeToCompletionSeconds
-        pyautogui.moveTo((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
+    for i in range(0, travelRepetitions):
+        startTime = time.time()
+        while time.time() - startTime  < timeToCompletionSeconds:
+            timeElapsed = time.time() - startTime
+            percentComplete = timeElapsed/timeToCompletionSeconds
+            pyautogui.moveTo((int(percentComplete* end[0] + (1-percentComplete) * start[0]), int(percentComplete * end[1] + (1-percentComplete) * start[1])))
 
-    pyautogui.mouseUp()
+        start , end = end, start
+
+    if releaseMouseOnEnd:
+        pyautogui.mouseUp()
     return 0
 
 def click_drag_circle (p1, p2, p3, travelRepititions, timeToCompleteSeconds):
