@@ -22,7 +22,7 @@ def startup():
     global SliderMultiplier
     data, timeData, SliderMultiplier = extractMapData(file)
     # TODO: Properly start (waiting for z needs root access on linux)
-    keyboard.wait('z')
+    #keyboard.wait('z')
 
     startTime = time.time()
 
